@@ -31,7 +31,6 @@
         imagePosition: "left",
         showSelectedHTML: true,
         clickOffToClose: true,
-		embedCSS: true,
         onSelected: function () { }
     },
 
@@ -56,23 +55,18 @@
                 '.dd-image-right { float:right; margin-right:15px; margin-left:5px;}' +
                 '.dd-container{ position:relative;}​ .dd-selected-text { font-weight:bold}​</style>';
 
+    //CSS styles are only added once.
+    if ($('#css-ddslick').length <= 0) {
+        $(ddslickCSS).appendTo('head');
+    }
+
     //Public methods 
-    methods.init = function (userOptions) {
+    methods.init = function (options) {
         //Preserve the original defaults by passing an empty object as the target
-        //The object is used to get global flags like embedCSS.
-        var options = $.extend({}, defaults, userOptions);
-        
-        //CSS styles are only added once.
-	    if ($('#css-ddslick').length <= 0 && options.embedCSS) {
-	        $(ddslickCSS).appendTo('head');
-	    }
+        var options = $.extend({}, defaults, options);
 
         //Apply on all selected elements
         return this.each(function () {
-            //Preserve the original defaults by passing an empty object as the target 
-            //The object is used to save drop-down's corresponding settings and data.
-            var options = $.extend({}, defaults, userOptions);
-            
             var obj = $(this),
                 data = obj.data('ddslick');
             //If the plugin has not been initialized yet
@@ -98,17 +92,12 @@
                 else options.data = $.merge(ddSelect, options.data);
 
                 //Replace HTML select with empty placeholder, keep the original
-                var original = obj, placeholder = $('<div').attr('id', obj.attr('id') + '-dd-placeholder');
+                var original = obj, placeholder = $('<div id="' + obj.attr('id') + '"></div>');
                 obj.replaceWith(placeholder);
                 obj = placeholder;
 
                 //Add classes and append ddSelectHtml & ddOptionsHtml to the container
                 obj.addClass('dd-container').append(ddSelectHtml).append(ddOptionsHtml);
-
-                // Inherit name attribute from original element
-                obj.find("input.dd-selected-value")
-                    .attr("id", $(original).attr("id"))
-                    .attr("name", $(original).attr("name"));
 
                 //Get newly created ddOptions and ddSelect to manipulate
                 var ddSelect = obj.find('.dd-select'),
@@ -173,7 +162,6 @@
                     ddOptions.addClass('dd-click-off-close');
                     obj.on('click.ddslick', function (e) { e.stopPropagation(); });
                     $('body').on('click', function () {
-                    $('.dd-open').removeClass('dd-open');
                         $('.dd-click-off-close').slideUp(50).siblings('.dd-select').find('.dd-pointer').removeClass('dd-pointer-up');
                     });
                 }
@@ -184,10 +172,8 @@
     //Public method to select an option by its index
     methods.select = function (options) {
         return this.each(function () {
-            if (options.index!==undefined)
+            if (options.index)
                 selectIndex($(this), options.index);
-            if (options.id)
-                selectId($(this), options.id);
         });
     }
 
@@ -228,14 +214,6 @@
             }
         });
     }
-    
-     //Private: Select id
-    function selectId(obj, id) {
-    
-       var index = obj.find(".dd-option-value[value= '" + id + "']").parents("li").prevAll().length;
-       selectIndex(obj, index);
-       
-    }
 
     //Private: Select index
     function selectIndex(obj, index) {
@@ -260,7 +238,7 @@
         //Update or Set plugin data with new selection
         pluginData.selectedIndex = index;
         pluginData.selectedItem = selectedLiItem;
-        pluginData.selectedData = selectedData;
+        pluginData.selectedData = selectedData;        
 
         //If set to display to full html, add html
         if (settings.showSelectedHTML) {
@@ -271,7 +249,7 @@
                 );
 
         }
-            //Else only display text as selection
+        //Else only display text as selection
         else ddSelected.html(selectedData.text);
 
         //Updating selected option value
@@ -304,15 +282,12 @@
         //Close all open options (multiple plugins) on the page
         $('.dd-click-off-close').not(ddOptions).slideUp(50);
         $('.dd-pointer').removeClass('dd-pointer-up');
-        $this.removeClass('dd-open');
 
         if (wasOpen) {
             ddOptions.slideUp('fast');
             ddPointer.removeClass('dd-pointer-up');
-            $this.removeClass('dd-open');
         }
         else {
-            $this.addClass('dd-open');
             ddOptions.slideDown('fast');
             ddPointer.addClass('dd-pointer-up');
         }
@@ -324,7 +299,6 @@
     //Private: Close the drop down options
     function close(obj) {
         //Close drop down and adjust pointer direction
-        obj.find('.dd-select').removeClass('dd-open');
         obj.find('.dd-options').slideUp(50);
         obj.find('.dd-pointer').removeClass('dd-pointer-up').removeClass('dd-pointer-up');
     }
