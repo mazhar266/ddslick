@@ -172,7 +172,7 @@
     //Public method to select an option by its index
     methods.select = function (options) {
         return this.each(function () {
-            if (options.index)
+            //if (options.index)
                 selectIndex($(this), options.index);
         });
     }
@@ -217,7 +217,6 @@
 
     //Private: Select index
     function selectIndex(obj, index) {
-
         //Get plugin data
         var pluginData = obj.data('ddslick');
 
